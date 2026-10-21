@@ -22,7 +22,7 @@
 - Bahasa: pesan error auth baru **Indonesia**; heading login lama `Sign in to BillMate` **tidak diubah** (diasersi `e2e-browser` B8/B10 — regex `/Sign in to BillMate/`).
 - Baseline saat ini: lint **0 errors / 6 warnings**, tsc **0**, build **0**, e2e **456/456 (10 suite)**. Target akhir: 11 suite semua hijau (perkiraan **472 assertion** — angka final dibaca dari output summary).
 - Server hanya jalur production: kill via scan `/proc/*/cmdline` (skip `$$`, **jangan pkill**), `bun run build`, `AUTH_URL=http://localhost:3000 setsid nohup bun run start > /tmp/opencode/prod-server.log 2>&1 < /dev/null & disown`, poll `/login` 200 (40×2s).
-- Playwright: `export LD_LIBRARY_PATH=/tmp/opencode/pwlibs/usr/lib/x86_64-linux-gnu BILLMATE_EMAIL='dev@billmate.test' BILLMATE_PASSWORD='billmate-dev-password'` (creds env-only di command, **tidak pernah** di file ter-commit); pola `record()` + `finally` cleanup; exit 0 iff `failCount===0`.
+- Playwright: `export LD_LIBRARY_PATH=/tmp/opencode/pwlibs/usr/lib/x86_64-linux-gnu BILLMATE_EMAIL='dev@billmate.test' BILLMATE_PASSWORD="$BILLMATE_PASSWORD"` (nilai password dari `.env` yang sudah terisi — **jangan pernah** tulis nilainya ke file mana pun); pola `record()` + `finally` cleanup; exit 0 iff `failCount===0`.
 - TDD ketat: test gagal dulu (alasan kegagalan = fitur belum ada), baru implementasi.
 - Commit gaya conventional Indonesia per task; **push oleh user via PowerShell** (WSL tanpa kredensial) — jangan push.
 - Prisma CLI: kalau perintah beda dengan Prisma 7, konsultasikan skill `.claude/skills/prisma-cli/SKILL.md`. Next.js API ragu → baca `node_modules/next/dist/docs/` (AGENTS.md).
