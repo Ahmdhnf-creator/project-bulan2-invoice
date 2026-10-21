@@ -103,7 +103,7 @@
 
 - [ ] `bunx tsc --noEmit` → 0 · `bun run lint` → 0 err/6 warn · `bunx prisma validate` → valid · `bun run build` → exit 0.
 - [ ] Restart server production → 10 suite → **451/451**.
-- [ ] Secret scan: `git ls-files | xargs grep -Il "billmate-dev-password" 2>/dev/null` → **KOSONG**; `git check-ignore .env` → exit 0; `git ls-files | grep -x ".env"` → kosong.
+- [ ] Secret scan: `git ls-files | xargs grep -Il "billmate-dev-pass[w]ord" 2>/dev/null` → **KOSONG** (pakai karakter class `[w]` agar literal password fixture tak pernah masuk ke file ter-commit); `git check-ignore .env` → exit 0; `git ls-files | grep -x ".env"` → kosong.
 - [ ] `git status --porcelain` → kosong.
 
 ### Task 6: Push ke GitHub
