@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BillMate
 
-## Getting Started
+Sistem administrasi & keuangan untuk bisnis berbasis proyek bernilai tinggi.
+MVP dengan **Proyek sebagai objek utama**: Customer → Proyek → Invoice →
+Pembayaran, plus Pengeluaran per proyek.
 
-First, run the development server:
+## Fitur (10 modul PRD)
+
+- Autentikasi kredensial (NextAuth v5, sesi JWT)
+- Profil usaha, Pelanggan, Proyek, Invoice (pajak per invoice), Pembayaran,
+  Pengeluaran
+- Dashboard (arus kas 6 bulan, status invoice, kartu ringkasan)
+- Laporan dasar per periode bulanan
+- Pengingat WhatsApp manual (salin pesan / buka `wa.me` — tanpa API)
+
+## Stack
+
+Next.js 16 (App Router + `proxy.ts`) · TypeScript · Tailwind 4 · Prisma 7 +
+PostgreSQL · next-auth 5 (beta) · Playwright (e2e)
+
+## Setup lokal
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install              # postinstall otomatis menjalankan prisma generate
+cp .env.example .env      # lalu isi nilainya
+bun run db:migrate        # terapkan migrasi
+BILLMATE_PASSWORD=<rahasia> bun run db:seed
+bun run build && AUTH_URL=http://localhost:3000 bun run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Login: `dev@billmate.test` + password = nilai `BILLMATE_PASSWORD` saat seed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variabel | Wajib | Keterangan |
+|---|---|---|
+| DATABASE_URL | ✓ | Koneksi app (pg adapter) |
+| DIRECT_URL | ✓ | Untuk prisma migrate & seed |
+| AUTH_SECRET | ✓ | `openssl rand -base64 32` |
+| AUTH_URL | - | URL publik (default `http://localhost:3000`) |
+| BILLMATE_EMAIL | saat e2e | Akun e2e (default `dev@billmate.test`) |
+| BILLMATE_PASSWORD | saat seed/e2e | **Rahasia** — jangan pernah commit |
 
-## Learn More
+## Perintah
 
-To learn more about Next.js, take a look at the following resources:
+| Perintah | Fungsi |
+|---|---|
+| `bun run dev` | server dev (bukan jalur verifikasi) |
+| `bun run build` / `bun run start` | build & server production |
+| `bun run lint` / `bunx tsc --noEmit` | lint & typecheck |
+| `bun run db:generate` / `db:migrate` / `db:seed` | prisma generate / migrate deploy / seed |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Testing (e2e)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+bun run lint && bunx tsc --noEmit
+bun run build && AUTH_URL=http://localhost:3000 bun run start &
+export BILLMATE_EMAIL=dev@billmate.test BILLMATE_PASSWORD=<rahasia>
+bun run e2e-shell.mjs
+```
 
-## Deploy on Vercel
+10 suite: `shell`, `invoices`, `projects`, `customers`, `payments`,
+`expenses`, `business-profile`, `reports`, `reminder`, `browser`
+(ganti nama file pada perintah di atas). Total **451 assertion**.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Catatan WSL/Linux: bila browser Playwright gagal memuat library sistem,
+arahkan `LD_LIBRARY_PATH` ke direktori library yang sudah diekstrak
+(contoh: `export LD_LIBRARY_PATH=/tmp/opencode/pwlibs/usr/lib/x86_64-linux-gnu`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy (Vercel)
+
+1. Push ke GitHub → Import repo di Vercel (Bun terdeteksi otomatis via
+   `packageManager` + `bun.lock`; `postinstall` menjalankan `prisma generate`).
+2. Set env: `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `AUTH_URL` (opsional).
+3. Build command: default Vercel (`bun run build`).
+4. Sekali di awal, dari mesin lokal dengan env produksi:
+   `bun run db:migrate && BILLMATE_PASSWORD=<rahasia> bun run db:seed`.
+5. Proxy (Next 16) default Node.js runtime — jangan set runtime edge
+   (auth memakai argon2 native).
+
+## Keputusan desain penting
+
+- Overdue invoice dihitung saat dibaca, tidak disimpan.
+- Tanpa payment gateway — pembayaran dicatat manual.
+- Rolling-refresh cookie sesi next-auth dibuang di `proxy.ts`
+  (race logout — next-auth issue #12909).
