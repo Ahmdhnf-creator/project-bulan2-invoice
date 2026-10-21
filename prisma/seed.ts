@@ -5,16 +5,24 @@ const adapter = new PrismaPg({ connectionString: process.env.DIRECT_URL });
 const prisma = new PrismaClient({ adapter });
 
 const DEV_EMAIL = "dev@billmate.test";
+const DEV_PASSWORD = process.env.BILLMATE_PASSWORD;
 
 async function main() {
+  if (!DEV_PASSWORD) {
+    throw new Error(
+      "BILLMATE_PASSWORD tidak diset. Isi di .env (lihat .env.example) sebelum menjalankan seed.",
+    );
+  }
+  const passwordHash = await Bun.password.hash(DEV_PASSWORD);
+
   // User — unique key: email
   const user = await prisma.user.upsert({
     where: { email: DEV_EMAIL },
-    update: { fullName: "Dev User" },
+    update: { fullName: "Dev User", passwordHash },
     create: {
       email: DEV_EMAIL,
       fullName: "Dev User",
-      passwordHash: await Bun.password.hash("billmate-dev-password"),
+      passwordHash,
     },
   });
 
