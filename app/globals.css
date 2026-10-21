@@ -32,22 +32,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --background: #0c1411;
-    --foreground: #eceae2;
-    --surface: #14201b;
-    --line: #26352e;
-    --muted: #93a59b;
-    --brand: #2dd4bf;
-    --brand-strong: #5eead4;
-    --brand-soft: #153f38;
-    --sidebar: #0a1f1a;
-    --sidebar-active: #14453a;
-    --sidebar-text: #b7d4c9;
-  }
-}
-
 :root[data-theme="dark"] {
   --background: #0c1411;
   --foreground: #eceae2;

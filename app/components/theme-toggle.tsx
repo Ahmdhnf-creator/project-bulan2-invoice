@@ -8,18 +8,12 @@ const CHANGE_EVENT = "billmate-theme-change";
 
 function readTheme(): "light" | "dark" {
   const attr = document.documentElement.getAttribute("data-theme");
-  if (attr === "dark" || attr === "light") return attr;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return attr === "dark" ? "dark" : "light";
 }
 
 function subscribe(onStoreChange: () => void) {
   window.addEventListener(CHANGE_EVENT, onStoreChange);
-  const mq = window.matchMedia("(prefers-color-scheme: dark)");
-  mq.addEventListener("change", onStoreChange);
-  return () => {
-    window.removeEventListener(CHANGE_EVENT, onStoreChange);
-    mq.removeEventListener("change", onStoreChange);
-  };
+  return () => window.removeEventListener(CHANGE_EVENT, onStoreChange);
 }
 
 function toggleTheme() {

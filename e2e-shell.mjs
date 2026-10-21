@@ -358,6 +358,20 @@ try {
     );
   }
 
+  // ---------- SH15e: tema default = terang, walau sistem preferensi gelap ----------
+  const darkCtx = await browser.newContext({ colorScheme: "dark" });
+  const darkPage = await darkCtx.newPage();
+  await uiLogin(darkPage, EMAIL, PASSWORD);
+  await darkPage.locator("h1", { hasText: "Ringkasan" }).waitFor({ timeout: 15000 });
+  const defaultAttr = await darkPage.evaluate(() => document.documentElement.getAttribute("data-theme"));
+  const defaultBg = await darkPage.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  record(
+    "SH15e default tema terang walau sistem gelap",
+    (defaultAttr === null || defaultAttr === "light") && defaultBg === "rgb(255, 255, 255)",
+    `attr=${defaultAttr} bg=${defaultBg}`,
+  );
+  await darkCtx.close();
+
   await context.close();
 } catch (error) {
   console.error("HARNESS ERROR:", error instanceof Error ? error.message : error);
