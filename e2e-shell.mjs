@@ -327,6 +327,37 @@ try {
     `invoices=${invCount} payments=${payCount}`,
   );
 
+  // ---------- SH15: switch mode terang/gelap ----------
+  await uiLogin(page, EMAIL, PASSWORD);
+  await page.locator("h1", { hasText: "Ringkasan" }).waitFor({ timeout: 15000 });
+  const themeBtn = page.locator('aside button[aria-label="Ganti mode tampilan"]');
+  const themeCount = await themeBtn.count();
+  record("SH15 theme toggle present in sidebar", themeCount === 1, `count=${themeCount}`);
+  if (themeCount === 1) {
+    const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await themeBtn.click();
+    const darkAttr = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+    const darkBg = await bg();
+    record(
+      "SH15b click → data-theme=dark + background gelap",
+      darkAttr === "dark" && darkBg === "rgb(12, 20, 17)",
+      `attr=${darkAttr} bg=${darkBg}`,
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator("h1", { hasText: "Ringkasan" }).waitFor({ timeout: 15000 }).catch(() => {});
+    const persistedAttr = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+    record("SH15c theme persists after reload", persistedAttr === "dark", `attr=${persistedAttr}`);
+    const themeBtnAfterReload = page.locator('aside button[aria-label="Ganti mode tampilan"]');
+    await themeBtnAfterReload.click();
+    const lightAttr = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+    const lightBg = await bg();
+    record(
+      "SH15d click again → data-theme=light + background putih",
+      lightAttr === "light" && lightBg === "rgb(255, 255, 255)",
+      `attr=${lightAttr} bg=${lightBg}`,
+    );
+  }
+
   await context.close();
 } catch (error) {
   console.error("HARNESS ERROR:", error instanceof Error ? error.message : error);

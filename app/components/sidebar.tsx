@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import LogoutButton from "@/app/components/logout-button";
+import ThemeToggle from "@/app/components/theme-toggle";
 import {
   IconCard,
   IconChart,
@@ -105,6 +106,7 @@ export default function Sidebar({ userName }: { userName: string }) {
               {userName}
             </span>
           </span>
+          <ThemeToggle />
         </div>
 
         <LogoutButton className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-medium text-sidebar-text transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50" />
