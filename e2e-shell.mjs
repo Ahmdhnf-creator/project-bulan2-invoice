@@ -372,6 +372,21 @@ try {
   );
   await darkCtx.close();
 
+  // ---------- SH15f: variant dark: ikut data-theme, bukan preferensi OS ----------
+  const sysDarkCtx = await browser.newContext({ colorScheme: "dark" });
+  const sysDarkPage = await sysDarkCtx.newPage();
+  await sysDarkPage.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+  await sysDarkPage.locator("#email").waitFor({ timeout: 15000 });
+  const loginCardBg = await sysDarkPage.evaluate(
+    () => getComputedStyle(document.querySelector("form")).backgroundColor,
+  );
+  record(
+    "SH15f login card tetap terang walau OS gelap (dark: ikut data-theme)",
+    loginCardBg === "rgb(255, 255, 255)",
+    `bg=${loginCardBg}`,
+  );
+  await sysDarkCtx.close();
+
   await context.close();
 } catch (error) {
   console.error("HARNESS ERROR:", error instanceof Error ? error.message : error);
