@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProjectStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  businessProfile BusinessProfile?
+  customers       Customer[]
+  projects        Project[]
+  invoices        Invoice[]
+  expenses        Expense[]
+
+  @@map("user")
+}
+
+model BusinessProfile {
+  id           BigInt   @id @default(autoincrement())
+  userId       BigInt   @unique @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  businessName String   @map("business_name")
+  address      String?
+  phone        String?
+  email        String?
+  taxId        String?  @map("tax_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  @@map("business_profile")
+}
+
+model Customer {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  projects Project[]
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("customer")
+}
+
+model Project {
+  id           BigInt        @id @default(autoincrement())
+  userId       BigInt        @map("user_id")
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  customerId   BigInt        @map("customer_id")
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  name         String
+  projectValue Decimal       @map("project_value") @db.Decimal(15, 2)
+  startDate    DateTime      @db.Date @map("start_date")
+  endDate      DateTime?     @db.Date @map("end_date")
+  status       ProjectStatus @default(PLANNED)
+  notes        String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @map("updated_at")
+
+  invoices Invoice[]
+  expenses Expense[]
+
+  @@index([userId])
+  @@index([customerId])
+  @@index([userId, status])
+  @@map("project")
+}
+
+model Invoice {
+  id            BigInt        @id @default(autoincrement())
+  userId        BigInt        @map("user_id")
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  projectId     BigInt        @map("project_id")
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  invoiceNumber String        @map("invoice_number")
+  issueDate     DateTime      @default(now()) @db.Date @map("issue_date")
+  dueDate       DateTime      @db.Date @map("due_date")
+  status        InvoiceStatus @default(UNPAID)
+  taxRate       Decimal       @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  subtotal      Decimal       @db.Decimal(15, 2)
+  taxAmount     Decimal       @default(0) @map("tax_amount") @db.Decimal(15, 2)
+  total         Decimal       @db.Decimal(15, 2)
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @default(now()) @map("updated_at")
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@unique([userId, invoiceNumber])
+  @@index([userId])
+  @@index([projectId])
+  @@index([userId, status])
+  @@map("invoice")
+}
+
+model InvoiceItem {
+  id          BigInt   @id @default(autoincrement())
+  invoiceId   BigInt   @map("invoice_id")
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal  @default(1) @db.Decimal(12, 2)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(15, 2)
+  amount      Decimal  @db.Decimal(15, 2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([invoiceId])
+  @@map("invoice_item")
+}
+
+model Payment {
+  id          BigInt   @id @default(autoincrement())
+  invoiceId   BigInt   @map("invoice_id")
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  amount      Decimal  @db.Decimal(15, 2)
+  paymentDate DateTime @default(now()) @db.Date @map("payment_date")
+  method      String?
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([invoiceId])
+  @@map("payment")
+}
+
+model Expense {
+  id          BigInt   @id @default(autoincrement())
+  userId      BigInt   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  projectId   BigInt   @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  description String
+  amount      Decimal  @db.Decimal(15, 2)
+  date        DateTime @db.Date
+  category    String
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([userId, date])
+  @@map("expense")
+}

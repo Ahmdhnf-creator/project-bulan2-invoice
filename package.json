@@ -9,7 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "@node-rs/argon2-win32-x64-msvc": "^2.2.2",
+    "@prisma/adapter-pg": "7",
+    "@prisma/client": "7",
     "next": "16.3.8",
+    "next-auth": "^5.0.0-beta.32",
+    "pg": "^8.23.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -20,10 +26,15 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "playwright": "^1.64.0",
+    "prisma": "7",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "packageManager": "bun@1.4.0",
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
   "ignoreScripts": [
     "sharp",
     "unrs-resolver"
