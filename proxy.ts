@@ -12,13 +12,13 @@ const authProxy = auth((req: NextAuthRequest) => {
   const { pathname } = req.nextUrl;
 
   const isPublicRoute =
-    pathname === "/login" || pathname.startsWith("/api/auth");
+    pathname === "/login" || pathname === "/register" || pathname.startsWith("/api/auth");
 
   if (!req.auth && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (req.auth && pathname === "/login") {
+  if (req.auth && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 

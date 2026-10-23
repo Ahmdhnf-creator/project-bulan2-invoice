@@ -1,6 +1,9 @@
 "use server";
 
 import { signIn, signOut } from "@/app/lib/auth";
+import { prisma } from "@/app/lib/prisma";
+import { Prisma } from "@/app/generated/prisma/client";
+import { hash as argon2Hash } from "@node-rs/argon2";
 import { CredentialsSignin } from "next-auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -20,11 +23,50 @@ export async function login(
     await signIn("credentials", { email, password, redirect: false });
   } catch (error) {
     if (error instanceof CredentialsSignin) {
-      return { error: "Invalid email or password." };
+      return { error: "Email atau password salah." };
     }
     throw error;
   }
 
+  redirect("/");
+}
+
+export interface RegisterState {
+  error?: string;
+}
+
+export async function register(
+  _state: RegisterState | null,
+  formData: FormData,
+): Promise<RegisterState | null> {
+  const fullName = ((formData.get("fullName") as string | undefined) ?? "").trim();
+  const email = ((formData.get("email") as string | undefined) ?? "").trim().toLowerCase();
+  const password = formData.get("password") as string | undefined;
+  const confirm = formData.get("confirmPassword") as string | undefined;
+
+  if (fullName.length < 2) return { error: "Nama lengkap wajib diisi." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Email tidak valid." };
+  if (!password || password.length < 8) return { error: "Password minimal 8 karakter." };
+  if (password !== confirm) return { error: "Konfirmasi password tidak sama." };
+
+  try {
+    const passwordHash = await argon2Hash(password);
+    await prisma.user.create({ data: { email, fullName, passwordHash } });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return { error: "Email sudah terdaftar." };
+    }
+    throw error;
+  }
+
+  try {
+    await signIn("credentials", { email, password, redirect: false });
+  } catch {
+    return { error: "Akun berhasil dibuat. Silakan login." };
+  }
   redirect("/");
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { login, type LoginState } from "@/app/actions/auth";
 
 export default function LoginPage() {
@@ -63,6 +64,9 @@ export default function LoginPage() {
         >
           {isPending ? "Signing in…" : "Sign in"}
         </button>
+        <Link href="/register" className="text-center text-sm text-black hover:underline dark:text-zinc-50">
+          Belum punya akun? Daftar
+        </Link>
       </form>
     </div>
   );
