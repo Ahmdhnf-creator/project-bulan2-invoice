@@ -32,27 +32,11 @@ export async function login(
     await signIn("credentials", { email, password, redirect: false });
   } catch (error) {
     if (error instanceof CredentialsSignin) {
-      if (user) {
-        const attempts = user.failedAttempts + 1;
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            failedAttempts: attempts,
-            ...(attempts >= 10 ? { lockedUntil: new Date(Date.now() + 15 * 60_000) } : {}),
-          },
-        });
-      }
       return { error: "Email atau password salah." };
     }
     throw error;
   }
 
-  if (user && (user.failedAttempts > 0 || user.lockedUntil)) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { failedAttempts: 0, lockedUntil: null },
-    });
-  }
   redirect("/");
 }
 

@@ -26,6 +26,8 @@ const regEmail = `auth-${stamp}@billmate-test.test`;
 const regPassword = "Register-Pass-123";
 const lockEmail = `lock-${stamp}@billmate-test.test`;
 const lockPassword = "Lockout-Pass-123";
+const bypassEmail = `bypass-${stamp}@billmate-test.test`;
+const bypassPassword = "Bypass-Pass-123";
 
 async function gotoLogin(page) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
@@ -145,11 +147,14 @@ try {
   }
   record("R8a 10x login salah tetap ditolak sebagai kredensial salah", wrongOk);
 
+  const expectedLockMsg = "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.";
   const lockMsg = await attemptWrong(page, lockEmail, lockPassword); // password BENAR
+  const lockedRow = await prisma.user.findUnique({ where: { id: lockUser.id } });
+  const lockAheadMs = lockedRow?.lockedUntil ? lockedRow.lockedUntil.getTime() - Date.now() : -1;
   record(
-    "R8b percobaan ke-11 (password benar) → pesan terkunci",
-    lockMsg.includes("Terlalu banyak percobaan"),
-    `msg=${lockMsg}`,
+    "R8b percobaan ke-11 (password benar) → pesan terkunci + lock ~15 menit",
+    lockMsg.includes(expectedLockMsg) && lockAheadMs > 0 && lockAheadMs <= 16 * 60_000,
+    `msg=${lockMsg} lockAheadMs=${lockAheadMs}`,
   );
 
   await prisma.user.update({
@@ -163,11 +168,68 @@ try {
   await page.waitForURL("**/", { timeout: 20000 });
   record("R8c setelah lock dibuka, login normal kembali", page.url().replace(BASE, "") === "/");
 
+  await page.locator('aside button[type="submit"]').click();
+  await page.waitForURL("**/login", { timeout: 20000 });
+
+  await prisma.user.update({
+    where: { id: lockUser.id },
+    data: { failedAttempts: 10, lockedUntil: new Date(Date.now() - 60_000) },
+  });
+  await gotoLogin(page);
+  await page.locator("#email").fill(lockEmail);
+  await page.locator("#password").fill(lockPassword);
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL("**/", { timeout: 20000 });
   const after = await prisma.user.findUnique({ where: { id: lockUser.id } });
   record(
-    "R8d login sukses mereset counter & lock",
-    after?.failedAttempts === 0 && after?.lockedUntil === null,
-    `attempts=${after?.failedAttempts}`,
+    "R8d lock kedaluwarsa + login sukses mereset counter & lock",
+    page.url().replace(BASE, "") === "/" &&
+      after?.failedAttempts === 0 &&
+      after?.lockedUntil === null,
+    `url=${page.url().replace(BASE, "")} attempts=${after?.failedAttempts} lockedUntil=${after?.lockedUntil?.toISOString() ?? "null"}`,
+  );
+
+  // ---------- R8e: bypass via NextAuth callback langsung ----------
+  await page.locator('aside button[type="submit"]').click();
+  await page.waitForURL("**/login", { timeout: 20000 });
+
+  await prisma.user.create({
+    data: {
+      email: bypassEmail,
+      fullName: "Bypass Tester",
+      passwordHash: await Bun.password.hash(bypassPassword),
+      failedAttempts: 10,
+      lockedUntil: new Date(Date.now() + 10 * 60_000),
+    },
+  });
+
+  const csrfRes = await page.request.get(`${BASE}/api/auth/csrf`);
+  const { csrfToken } = await csrfRes.json();
+  const cbRes = await page.request.post(`${BASE}/api/auth/callback/credentials`, {
+    form: {
+      csrfToken,
+      email: bypassEmail,
+      password: bypassPassword,
+      callbackUrl: `${BASE}/`,
+    },
+    headers: { "X-Auth-Return-Redirect": "1" },
+    maxRedirects: 0,
+  });
+  const body = await cbRes.text();
+  let callbackUrl = "";
+  try {
+    callbackUrl = JSON.parse(body)?.url ?? "";
+  } catch {
+    callbackUrl = "";
+  }
+  const setCookies = (await cbRes.headersArray()).filter(
+    (h) => h.name.toLowerCase() === "set-cookie",
+  );
+  const hasSessionCookie = setCookies.some((h) => /session-token=[^;]+/.test(h.value));
+  record(
+    "R8e callback credentials langsung tetap ditolak saat terkunci",
+    !hasSessionCookie && callbackUrl.includes("error"),
+    `status=${cbRes.status()} url=${callbackUrl}`,
   );
 
   await context.close();
@@ -175,7 +237,9 @@ try {
   console.error("HARNESS ERROR:", error instanceof Error ? error.message : error);
   failCount++;
 } finally {
-  await prisma.user.deleteMany({ where: { email: { in: [regEmail, lockEmail] } } });
+  await prisma.user.deleteMany({
+    where: { email: { in: [regEmail, lockEmail, bypassEmail] } },
+  });
   await prisma.$disconnect();
   await browser?.close();
 }
