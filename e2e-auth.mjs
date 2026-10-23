@@ -49,6 +49,21 @@ async function attemptWrong(page, email, password) {
   return (await page.locator("form p").first().textContent().catch(() => "")) ?? "";
 }
 
+async function parseCallbackResponse(res) {
+  const body = await res.text();
+  let url = "";
+  try {
+    url = JSON.parse(body)?.url ?? "";
+  } catch {
+    url = "";
+  }
+  const setCookies = (await res.headersArray()).filter(
+    (h) => h.name.toLowerCase() === "set-cookie",
+  );
+  const hasSessionCookie = setCookies.some((h) => /session-token=[^;]+/.test(h.value));
+  return { url, body, hasSessionCookie, status: res.status() };
+}
+
 let browser = null;
 try {
   browser = await chromium.launch({ headless: true });
@@ -171,36 +186,52 @@ try {
   await page.locator('aside button[type="submit"]').click();
   await page.waitForURL("**/login", { timeout: 20000 });
 
+  // R8d: lock kedaluwarsa + password SALAH → reset expiry lalu increment 1, tanpa re-lock
   await prisma.user.update({
     where: { id: lockUser.id },
     data: { failedAttempts: 10, lockedUntil: new Date(Date.now() - 60_000) },
+  });
+  const expiredWrongMsg = await attemptWrong(page, lockEmail, "wrong-password-x");
+  const expiredRow = await prisma.user.findUnique({ where: { id: lockUser.id } });
+  record(
+    "R8d lock kedaluwarsa + password salah → counter 1, tidak re-lock",
+    expiredWrongMsg.includes("Email atau password salah.") &&
+      !expiredWrongMsg.includes("Terlalu banyak percobaan") &&
+      expiredRow?.failedAttempts === 1 &&
+      expiredRow?.lockedUntil === null,
+    `msg=${expiredWrongMsg} attempts=${expiredRow?.failedAttempts} lockedUntil=${expiredRow?.lockedUntil?.toISOString() ?? "null"}`,
+  );
+  await prisma.user.update({
+    where: { id: lockUser.id },
+    data: { failedAttempts: 0, lockedUntil: null },
+  });
+
+  // R8e: success reset (counter awal > 0)
+  await prisma.user.update({
+    where: { id: lockUser.id },
+    data: { failedAttempts: 3, lockedUntil: null },
   });
   await gotoLogin(page);
   await page.locator("#email").fill(lockEmail);
   await page.locator("#password").fill(lockPassword);
   await page.locator('button[type="submit"]').click();
   await page.waitForURL("**/", { timeout: 20000 });
-  const after = await prisma.user.findUnique({ where: { id: lockUser.id } });
+  const afterSuccess = await prisma.user.findUnique({ where: { id: lockUser.id } });
   record(
-    "R8d lock kedaluwarsa + login sukses mereset counter & lock",
+    "R8e login sukses mereset counter & lock",
     page.url().replace(BASE, "") === "/" &&
-      after?.failedAttempts === 0 &&
-      after?.lockedUntil === null,
-    `url=${page.url().replace(BASE, "")} attempts=${after?.failedAttempts} lockedUntil=${after?.lockedUntil?.toISOString() ?? "null"}`,
+      afterSuccess?.failedAttempts === 0 &&
+      afterSuccess?.lockedUntil === null,
+    `url=${page.url().replace(BASE, "")} attempts=${afterSuccess?.failedAttempts} lockedUntil=${afterSuccess?.lockedUntil?.toISOString() ?? "null"}`,
   );
 
-  // ---------- R8e: bypass via NextAuth callback langsung ----------
+  // ---------- R8f: bypass via NextAuth callback langsung saat terkunci ----------
   await page.locator('aside button[type="submit"]').click();
   await page.waitForURL("**/login", { timeout: 20000 });
 
-  await prisma.user.create({
-    data: {
-      email: bypassEmail,
-      fullName: "Bypass Tester",
-      passwordHash: await Bun.password.hash(bypassPassword),
-      failedAttempts: 10,
-      lockedUntil: new Date(Date.now() + 10 * 60_000),
-    },
+  await prisma.user.update({
+    where: { id: lockUser.id },
+    data: { failedAttempts: 10, lockedUntil: new Date(Date.now() + 10 * 60_000) },
   });
 
   const csrfRes = await page.request.get(`${BASE}/api/auth/csrf`);
@@ -208,28 +239,49 @@ try {
   const cbRes = await page.request.post(`${BASE}/api/auth/callback/credentials`, {
     form: {
       csrfToken,
-      email: bypassEmail,
-      password: bypassPassword,
+      email: lockEmail,
+      password: lockPassword,
       callbackUrl: `${BASE}/`,
     },
     headers: { "X-Auth-Return-Redirect": "1" },
     maxRedirects: 0,
   });
-  const body = await cbRes.text();
-  let callbackUrl = "";
-  try {
-    callbackUrl = JSON.parse(body)?.url ?? "";
-  } catch {
-    callbackUrl = "";
-  }
-  const setCookies = (await cbRes.headersArray()).filter(
-    (h) => h.name.toLowerCase() === "set-cookie",
-  );
-  const hasSessionCookie = setCookies.some((h) => /session-token=[^;]+/.test(h.value));
+  const cb = await parseCallbackResponse(cbRes);
+  const lockedAfterCb = await prisma.user.findUnique({ where: { id: lockUser.id } });
   record(
-    "R8e callback credentials langsung tetap ditolak saat terkunci",
-    !hasSessionCookie && callbackUrl.includes("error"),
-    `status=${cbRes.status()} url=${callbackUrl}`,
+    "R8f callback credentials langsung ditolak saat terkunci (CredentialsSignin)",
+    !cb.hasSessionCookie &&
+      (cb.url.includes("CredentialsSignin") || cb.body.includes("CredentialsSignin")) &&
+      lockedAfterCb?.failedAttempts === 10,
+    `status=${cb.status} url=${cb.url} attempts=${lockedAfterCb?.failedAttempts}`,
+  );
+
+  // ---------- R8g: akrual gagal lewat callback langsung (user baru, unlocked) ----------
+  const bypassUser = await prisma.user.create({
+    data: {
+      email: bypassEmail,
+      fullName: "Bypass Tester",
+      passwordHash: await Bun.password.hash(bypassPassword),
+    },
+  });
+  const accrueCsrfRes = await page.request.get(`${BASE}/api/auth/csrf`);
+  const { csrfToken: accrueCsrfToken } = await accrueCsrfRes.json();
+  const accrueRes = await page.request.post(`${BASE}/api/auth/callback/credentials`, {
+    form: {
+      csrfToken: accrueCsrfToken,
+      email: bypassEmail,
+      password: "wrong-password-x",
+      callbackUrl: `${BASE}/`,
+    },
+    headers: { "X-Auth-Return-Redirect": "1" },
+    maxRedirects: 0,
+  });
+  const accrue = await parseCallbackResponse(accrueRes);
+  const bypassAfter = await prisma.user.findUnique({ where: { id: bypassUser.id } });
+  record(
+    "R8g callback password salah tetap menaikkan failedAttempts = 1",
+    !accrue.hasSessionCookie && bypassAfter?.failedAttempts === 1,
+    `status=${accrue.status} attempts=${bypassAfter?.failedAttempts}`,
   );
 
   await context.close();
