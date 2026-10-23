@@ -16,18 +16,43 @@ export async function login(
   _state: LoginState | null,
   formData: FormData,
 ): Promise<LoginState | null> {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const email = ((formData.get("email") as string | undefined) ?? "").trim().toLowerCase();
+  const password = formData.get("password") as string | undefined;
+
+  if (!email || !password) {
+    return { error: "Email atau password salah." };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (user?.lockedUntil && user.lockedUntil > new Date()) {
+    return { error: "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit." };
+  }
 
   try {
     await signIn("credentials", { email, password, redirect: false });
   } catch (error) {
     if (error instanceof CredentialsSignin) {
+      if (user) {
+        const attempts = user.failedAttempts + 1;
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            failedAttempts: attempts,
+            ...(attempts >= 10 ? { lockedUntil: new Date(Date.now() + 15 * 60_000) } : {}),
+          },
+        });
+      }
       return { error: "Email atau password salah." };
     }
     throw error;
   }
 
+  if (user && (user.failedAttempts > 0 || user.lockedUntil)) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failedAttempts: 0, lockedUntil: null },
+    });
+  }
   redirect("/");
 }
 

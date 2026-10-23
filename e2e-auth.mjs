@@ -26,7 +26,6 @@ const regEmail = `auth-${stamp}@billmate-test.test`;
 const regPassword = "Register-Pass-123";
 const lockEmail = `lock-${stamp}@billmate-test.test`;
 const lockPassword = "Lockout-Pass-123";
-void lockPassword; // dipakai Task 3; void agar eslint tidak menandai unused sekarang
 
 async function gotoLogin(page) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
@@ -129,6 +128,47 @@ try {
   await page.locator('button[type="submit"]').click();
   await page.locator("form p", { hasText: "Email sudah terdaftar." }).waitFor({ timeout: 20000 });
   record("R7 email duplikat ditolak", (await bodyText(page)).includes("Email sudah terdaftar."));
+
+  // ---------- R8: lockout brute-force ----------
+  const lockUser = await prisma.user.create({
+    data: {
+      email: lockEmail,
+      fullName: "Lockout Tester",
+      passwordHash: await Bun.password.hash(lockPassword),
+    },
+  });
+
+  let wrongOk = true;
+  for (let i = 0; i < 10; i++) {
+    const msg = await attemptWrong(page, lockEmail, "wrong-password-x");
+    if (!msg.includes("Email atau password salah.")) wrongOk = false;
+  }
+  record("R8a 10x login salah tetap ditolak sebagai kredensial salah", wrongOk);
+
+  const lockMsg = await attemptWrong(page, lockEmail, lockPassword); // password BENAR
+  record(
+    "R8b percobaan ke-11 (password benar) → pesan terkunci",
+    lockMsg.includes("Terlalu banyak percobaan"),
+    `msg=${lockMsg}`,
+  );
+
+  await prisma.user.update({
+    where: { id: lockUser.id },
+    data: { failedAttempts: 0, lockedUntil: null },
+  });
+  await gotoLogin(page);
+  await page.locator("#email").fill(lockEmail);
+  await page.locator("#password").fill(lockPassword);
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL("**/", { timeout: 20000 });
+  record("R8c setelah lock dibuka, login normal kembali", page.url().replace(BASE, "") === "/");
+
+  const after = await prisma.user.findUnique({ where: { id: lockUser.id } });
+  record(
+    "R8d login sukses mereset counter & lock",
+    after?.failedAttempts === 0 && after?.lockedUntil === null,
+    `attempts=${after?.failedAttempts}`,
+  );
 
   await context.close();
 } catch (error) {
