@@ -341,6 +341,12 @@ dan redirect authed menjadi:
 
 ### Task 3: Lockout brute-force login (10 gagal / 15 menit)
 
+> **Catatan implementasi (supersedes snippet `login()` di bawah):** enforcement
+> dipindah ke `authorize()` di `app/lib/auth.ts` — increment atomik dalam
+> transaksi, reset saat lock kedaluwarsa, dan reset saat login sukses.
+> `login()` hanya menyisakan pre-check pesan lock; snippet lama yang
+> menaikkan counter di `login()` tidak dipakai lagi.
+
 **Files:**
 - Modify: `prisma/schema.prisma` (model `User`) → migrasi baru
 - Modify: `app/actions/auth.ts` (`login()`)

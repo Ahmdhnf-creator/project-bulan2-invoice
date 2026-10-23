@@ -4,12 +4,6 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./app/generated/prisma/client";
 
 const BASE = process.env.BILLMATE_BASE_URL || "http://localhost:3000";
-const EMAIL = process.env.BILLMATE_EMAIL;
-const PASSWORD = process.env.BILLMATE_PASSWORD;
-if (!EMAIL || !PASSWORD) {
-  console.error("SETUP FAIL: BILLMATE_EMAIL and BILLMATE_PASSWORD env vars required");
-  process.exit(2);
-}
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
@@ -28,6 +22,9 @@ const lockEmail = `lock-${stamp}@billmate-test.test`;
 const lockPassword = "Lockout-Pass-123";
 const bypassEmail = `bypass-${stamp}@billmate-test.test`;
 const bypassPassword = "Bypass-Pass-123";
+const mixedEmail = `Reg-${stamp}@BillMate-Test.Test`;
+const mixedEmailLower = mixedEmail.toLowerCase();
+const mixedPassword = "Mixed-Pass-123";
 
 async function gotoLogin(page) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
@@ -85,6 +82,24 @@ try {
   // ---------- R2: validasi ----------
   await page.goto(`${BASE}/register`, { waitUntil: "domcontentloaded" });
   await page.locator("#fullName").waitFor({ timeout: 15000 });
+
+  await page.locator("#email").fill(regEmail);
+  await page.locator("#password").fill(regPassword);
+  await page.locator("#confirmPassword").fill(regPassword);
+  await page.evaluate(() => document.querySelector("#fullName").removeAttribute("required"));
+  await page.locator('button[type="submit"]').click();
+  await page.locator("form p", { hasText: "Nama lengkap wajib diisi." }).waitFor({ timeout: 20000 });
+  record("R2d nama kosong ditolak server", (await bodyText(page)).includes("Nama lengkap wajib diisi."));
+
+  await page.locator("#fullName").fill("Auth Tester");
+  await page.locator("#email").fill("bukan-email");
+  await page.locator("#password").fill(regPassword);
+  await page.locator("#confirmPassword").fill(regPassword);
+  await page.evaluate(() => document.querySelector("form").setAttribute("novalidate", ""));
+  await page.locator('button[type="submit"]').click();
+  await page.locator("form p", { hasText: "Email tidak valid." }).waitFor({ timeout: 20000 });
+  record("R2e email tidak valid ditolak server", (await bodyText(page)).includes("Email tidak valid."));
+
   await page.locator("#fullName").fill("Auth Tester");
   await page.locator("#email").fill(regEmail);
   await page.locator("#password").fill("short");
@@ -146,6 +161,30 @@ try {
   await page.locator("form p", { hasText: "Email sudah terdaftar." }).waitFor({ timeout: 20000 });
   record("R7 email duplikat ditolak", (await bodyText(page)).includes("Email sudah terdaftar."));
 
+  // ---------- R7b: registrasi email campuran → login huruf kecil ----------
+  await page.goto(`${BASE}/register`, { waitUntil: "domcontentloaded" });
+  await page.locator("#fullName").waitFor({ timeout: 15000 });
+  await page.locator("#fullName").fill("Mixed Case Tester");
+  await page.locator("#email").fill(mixedEmail);
+  await page.locator("#password").fill(mixedPassword);
+  await page.locator("#confirmPassword").fill(mixedPassword);
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL("**/", { timeout: 20000 });
+  await page.locator('aside button[type="submit"]').click();
+  await page.waitForURL("**/login", { timeout: 20000 });
+  await page.locator("#email").fill(mixedEmailLower);
+  await page.locator("#password").fill(mixedPassword);
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL("**/", { timeout: 20000 }).catch(() => {});
+  const mixedRow = await prisma.user.findUnique({ where: { email: mixedEmailLower } });
+  record(
+    "R7b registrasi email campuran → login huruf kecil cocok + baris DB lowercase",
+    page.url().replace(BASE, "") === "/" && mixedRow?.email === mixedEmailLower,
+    `url=${page.url().replace(BASE, "")} row=${mixedRow?.email ?? "null"}`,
+  );
+  await page.locator('aside button[type="submit"]').click();
+  await page.waitForURL("**/login", { timeout: 20000 });
+
   // ---------- R8: lockout brute-force ----------
   const lockUser = await prisma.user.create({
     data: {
@@ -168,7 +207,7 @@ try {
   const lockAheadMs = lockedRow?.lockedUntil ? lockedRow.lockedUntil.getTime() - Date.now() : -1;
   record(
     "R8b percobaan ke-11 (password benar) → pesan terkunci + lock ~15 menit",
-    lockMsg.includes(expectedLockMsg) && lockAheadMs > 0 && lockAheadMs <= 16 * 60_000,
+    lockMsg.includes(expectedLockMsg) && lockAheadMs > 14 * 60_000 && lockAheadMs <= 16 * 60_000,
     `msg=${lockMsg} lockAheadMs=${lockAheadMs}`,
   );
 
@@ -290,7 +329,7 @@ try {
   failCount++;
 } finally {
   await prisma.user.deleteMany({
-    where: { email: { in: [regEmail, lockEmail, bypassEmail] } },
+    where: { email: { in: [regEmail, lockEmail, bypassEmail, mixedEmailLower] } },
   });
   await prisma.$disconnect();
   await browser?.close();

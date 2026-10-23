@@ -21,14 +21,14 @@ enum InvoiceStatus {
 }
 
 model User {
-  id           BigInt   @id @default(autoincrement())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  fullName     String   @map("full_name")
+  id             BigInt    @id @default(autoincrement())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  fullName       String    @map("full_name")
   failedAttempts Int       @default(0) @map("failed_attempts")
   lockedUntil    DateTime? @map("locked_until")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @default(now()) @map("updated_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @map("updated_at")
 
   businessProfile BusinessProfile?
   customers       Customer[]
@@ -80,8 +80,8 @@ model Project {
   customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
   name         String
   projectValue Decimal       @map("project_value") @db.Decimal(15, 2)
-  startDate    DateTime      @db.Date @map("start_date")
-  endDate      DateTime?     @db.Date @map("end_date")
+  startDate    DateTime      @map("start_date") @db.Date
+  endDate      DateTime?     @map("end_date") @db.Date
   status       ProjectStatus @default(PLANNED)
   notes        String?
   createdAt    DateTime      @default(now()) @map("created_at")
@@ -103,8 +103,8 @@ model Invoice {
   projectId     BigInt        @map("project_id")
   project       Project       @relation(fields: [projectId], references: [id], onDelete: Restrict)
   invoiceNumber String        @map("invoice_number")
-  issueDate     DateTime      @default(now()) @db.Date @map("issue_date")
-  dueDate       DateTime      @db.Date @map("due_date")
+  issueDate     DateTime      @default(now()) @map("issue_date") @db.Date
+  dueDate       DateTime      @map("due_date") @db.Date
   status        InvoiceStatus @default(UNPAID)
   taxRate       Decimal       @default(0) @map("tax_rate") @db.Decimal(5, 2)
   subtotal      Decimal       @db.Decimal(15, 2)
@@ -144,7 +144,7 @@ model Payment {
   invoiceId   BigInt   @map("invoice_id")
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
   amount      Decimal  @db.Decimal(15, 2)
-  paymentDate DateTime @default(now()) @db.Date @map("payment_date")
+  paymentDate DateTime @default(now()) @map("payment_date") @db.Date
   method      String?
   notes       String?
   createdAt   DateTime @default(now()) @map("created_at")

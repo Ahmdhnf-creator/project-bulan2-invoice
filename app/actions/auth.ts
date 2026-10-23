@@ -16,8 +16,10 @@ export async function login(
   _state: LoginState | null,
   formData: FormData,
 ): Promise<LoginState | null> {
-  const email = ((formData.get("email") as string | undefined) ?? "").trim().toLowerCase();
-  const password = formData.get("password") as string | undefined;
+  const emailRaw = formData.get("email");
+  const email = typeof emailRaw === "string" ? emailRaw.trim().toLowerCase() : "";
+  const passwordRaw = formData.get("password");
+  const password = typeof passwordRaw === "string" ? passwordRaw : "";
 
   if (!email || !password) {
     return { error: "Email atau password salah." };
@@ -42,16 +44,21 @@ export async function login(
 
 export interface RegisterState {
   error?: string;
+  success?: string;
 }
 
 export async function register(
   _state: RegisterState | null,
   formData: FormData,
 ): Promise<RegisterState | null> {
-  const fullName = ((formData.get("fullName") as string | undefined) ?? "").trim();
-  const email = ((formData.get("email") as string | undefined) ?? "").trim().toLowerCase();
-  const password = formData.get("password") as string | undefined;
-  const confirm = formData.get("confirmPassword") as string | undefined;
+  const fullNameRaw = formData.get("fullName");
+  const fullName = typeof fullNameRaw === "string" ? fullNameRaw.trim() : "";
+  const emailRaw = formData.get("email");
+  const email = typeof emailRaw === "string" ? emailRaw.trim().toLowerCase() : "";
+  const passwordRaw = formData.get("password");
+  const password = typeof passwordRaw === "string" ? passwordRaw : "";
+  const confirmRaw = formData.get("confirmPassword");
+  const confirm = typeof confirmRaw === "string" ? confirmRaw : "";
 
   if (fullName.length < 2) return { error: "Nama lengkap wajib diisi." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Email tidak valid." };
@@ -74,7 +81,7 @@ export async function register(
   try {
     await signIn("credentials", { email, password, redirect: false });
   } catch {
-    return { error: "Akun berhasil dibuat. Silakan login." };
+    return { success: "Akun berhasil dibuat. Silakan login." };
   }
   redirect("/");
 }

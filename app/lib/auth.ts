@@ -44,17 +44,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // default), so verification must use Argon2id, not bcrypt.
         const isValid = await argon2Verify(user.passwordHash, password);
         if (!isValid) {
-          const updated = await prisma.user.update({
-            where: { id: user.id },
-            data: { failedAttempts: { increment: 1 } },
-            select: { failedAttempts: true },
-          });
-          if (updated.failedAttempts >= LOCKOUT_THRESHOLD) {
-            await prisma.user.update({
+          await prisma.$transaction(async (tx) => {
+            const updated = await tx.user.update({
               where: { id: user.id },
-              data: { lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MS) },
+              data: { failedAttempts: { increment: 1 } },
+              select: { failedAttempts: true },
             });
-          }
+            if (updated.failedAttempts >= LOCKOUT_THRESHOLD) {
+              await tx.user.update({
+                where: { id: user.id },
+                data: { lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MS) },
+              });
+            }
+          });
           return null;
         }
 

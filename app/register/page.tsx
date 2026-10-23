@@ -34,6 +34,12 @@ export default function RegisterPage() {
           </p>
         ) : null}
 
+        {state?.success ? (
+          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+            {state.success}
+          </p>
+        ) : null}
+
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="fullName"

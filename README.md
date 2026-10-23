@@ -49,6 +49,7 @@ Login: `dev@billmate.test` + password = nilai `BILLMATE_PASSWORD` saat seed.
 | `bun run build` / `bun run start` | build & server production |
 | `bun run lint` / `bunx tsc --noEmit` | lint & typecheck |
 | `bun run db:generate` / `db:migrate` / `db:seed` | prisma generate / migrate deploy / seed |
+| `bun run db:reset-password <email> <password-baru>` | reset password + buka lockout |
 
 ## Testing (e2e)
 
@@ -62,7 +63,7 @@ bun run e2e-shell.mjs
 11 suite: `shell`, `invoices`, `projects`, `customers`, `payments`,
 `expenses`, `business-profile`, `reports`, `reminder`, `browser`, `auth`
 (ganti nama file pada perintah di atas, termasuk `e2e-auth.mjs`).
-Total **475 assertion**.
+Total **478 assertion**.
 
 Catatan WSL/Linux: bila browser Playwright gagal memuat library sistem,
 arahkan `LD_LIBRARY_PATH` ke direktori library yang sudah diekstrak
@@ -90,6 +91,12 @@ bun run db:reset-password <email> <password-baru>
 ```
 
 Reset juga membuka lockout (`failedAttempts=0`, `lockedUntil=null`).
+
+- Password yang diberikan sebagai argumen terlihat di shell history/process
+  list — gunakan shell tepercaya.
+- Reset password **tidak** mencabut sesi yang sudah ada (sesi kedaluwarsa
+  mengikuti kebijakan JWT). Bila mencurigai kompromi, rotasi `AUTH_SECRET`
+  dan/atau sign-out perangkat terkait.
 
 ## Keputusan desain penting
 
