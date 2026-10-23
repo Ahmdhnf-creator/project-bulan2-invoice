@@ -6,7 +6,7 @@ Pembayaran, plus Pengeluaran per proyek.
 
 ## Fitur (10 modul PRD)
 
-- Autentikasi kredensial (NextAuth v5, sesi JWT)
+- Autentikasi kredensial (NextAuth v5, sesi JWT), registrasi mandiri /register, kunci brute-force (10 gagal / 15 menit), reset password via CLI
 - Profil usaha, Pelanggan, Proyek, Invoice (pajak per invoice), Pembayaran,
   Pengeluaran
 - Dashboard (arus kas 6 bulan, status invoice, kartu ringkasan)
@@ -59,9 +59,10 @@ export BILLMATE_EMAIL=dev@billmate.test BILLMATE_PASSWORD=<rahasia>
 bun run e2e-shell.mjs
 ```
 
-10 suite: `shell`, `invoices`, `projects`, `customers`, `payments`,
-`expenses`, `business-profile`, `reports`, `reminder`, `browser`
-(ganti nama file pada perintah di atas). Total **451 assertion**.
+11 suite: `shell`, `invoices`, `projects`, `customers`, `payments`,
+`expenses`, `business-profile`, `reports`, `reminder`, `browser`, `auth`
+(ganti nama file pada perintah di atas, termasuk `e2e-auth.mjs`).
+Total **475 assertion**.
 
 Catatan WSL/Linux: bila browser Playwright gagal memuat library sistem,
 arahkan `LD_LIBRARY_PATH` ke direktori library yang sudah diekstrak
@@ -73,10 +74,22 @@ arahkan `LD_LIBRARY_PATH` ke direktori library yang sudah diekstrak
    `packageManager` + `bun.lock`; `postinstall` menjalankan `prisma generate`).
 2. Set env: `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `AUTH_URL` (opsional).
 3. Build command: default Vercel (`bun run build`).
-4. Sekali di awal, dari mesin lokal dengan env produksi:
-   `bun run db:migrate && BILLMATE_PASSWORD=<rahasia> bun run db:seed`.
+4. Production **jangan** seed (seed = data demo + akun dev). Setelah env
+   DB siap: `bun run db:migrate`, lalu buka `/register` untuk membuat
+   akun pertama. Lupa password? Seller jalankan
+   `bun run db:reset-password <email> <password-baru>` dengan env prod.
 5. Proxy (Next 16) default Node.js runtime — jangan set runtime edge
    (auth memakai argon2 native).
+
+### Lupa password
+
+Dari mesin lokal dengan env produksi:
+
+```bash
+bun run db:reset-password <email> <password-baru>
+```
+
+Reset juga membuka lockout (`failedAttempts=0`, `lockedUntil=null`).
 
 ## Keputusan desain penting
 
