@@ -25,7 +25,7 @@ export default async function InvoicesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link
