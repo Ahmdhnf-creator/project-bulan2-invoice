@@ -40,15 +40,28 @@ export const EXPENSE_CATEGORIES = [
   "Other",
 ] as const;
 
+function groupThousands(digits: string): string {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export function formatIdr(
   value: { toString(): string } | null | undefined,
 ): string {
   const whole = (value?.toString() ?? "0").split(".")[0] ?? "0";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(whole));
+  const num = Number(whole);
+  // Decimal(15,2) maksimal 13 digit integer, aman untuk Number, tetapi
+  // jaga presisi jika skema diperlebar di masa depan. Pertahankan output
+  // NBSP ("Rp\u00A0...") agar tetap konsisten dengan tes e2e.
+  if (Number.isSafeInteger(num)) {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(num);
+  }
+  const sign = whole.startsWith("-") ? "-" : "";
+  const digits = whole.replace(/^-/, "").replace(/\D/g, "") || "0";
+  return `Rp\u00A0${sign}${groupThousands(digits)}`;
 }
 
 export function formatDate(date: Date | null | undefined): string {

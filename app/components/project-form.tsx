@@ -1,16 +1,30 @@
 "use client";
 
 import { useActionState } from "react";
-import type { Customer, Project } from "@/app/generated/prisma/client";
+import type { Customer } from "@/app/generated/prisma/client";
 import type { ProjectState } from "@/app/actions/project";
 import { PROJECT_STATUS_LABEL } from "@/app/lib/format";
+
+// DTO serializable yang dikirim dari Server Component ke Client Component.
+// Semua nilai ID dan uang dikirim sebagai string agar aman diserialisasi
+// dalam payload RSC (Prisma Decimal dan BigInt tidak diperbolehkan).
+export interface ProjectFormValues {
+  id: string;
+  name: string;
+  customerId: string;
+  projectValue: string;
+  startDate: string;
+  endDate: string | null;
+  status: string;
+  notes: string | null;
+}
 
 interface ProjectFormProps {
   action: (
     state: ProjectState | null,
     formData: FormData,
   ) => Promise<ProjectState>;
-  project: Project | null;
+  project: ProjectFormValues | null;
   customers: Pick<Customer, "id" | "name">[];
   submitLabel: string;
 }
@@ -31,11 +45,14 @@ function toInputNumber(value: { toString(): string } | null | undefined): string
     .replace(/\.$/, "");
 }
 
-function toDateInput(date: Date | null | undefined): string {
-  if (!date) {
+function toDateInput(value: string | Date | null | undefined): string {
+  if (!value) {
     return "";
   }
-  return date.toISOString().slice(0, 10);
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+  return value.toISOString().slice(0, 10);
 }
 
 export default function ProjectForm({
@@ -53,7 +70,7 @@ export default function ProjectForm({
       className="flex w-full max-w-xl flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900"
     >
       {project ? (
-        <input type="hidden" name="projectId" value={project.id.toString()} />
+        <input type="hidden" name="projectId" value={project.id} />
       ) : null}
 
       {state?.error ? (
@@ -97,7 +114,7 @@ export default function ProjectForm({
           id="customerId"
           name="customerId"
           required
-          defaultValue={project ? project.customerId.toString() : ""}
+          defaultValue={project?.customerId ?? ""}
           className={inputClass}
         >
           <option value="" disabled>

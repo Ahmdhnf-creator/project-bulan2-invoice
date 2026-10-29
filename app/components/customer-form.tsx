@@ -1,15 +1,25 @@
 "use client";
 
 import { useActionState } from "react";
-import type { Customer } from "@/app/generated/prisma/client";
 import type { CustomerState } from "@/app/actions/customer";
+
+// DTO serializable yang dikirim dari Server Component ke Client Component.
+// ID dikirim sebagai string agar aman diserialisasi dalam payload RSC
+// (Prisma BigInt tidak diperbolehkan).
+export interface CustomerFormValues {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+}
 
 interface CustomerFormProps {
   action: (
     state: CustomerState | null,
     formData: FormData,
   ) => Promise<CustomerState>;
-  customer: Customer | null;
+  customer: CustomerFormValues | null;
   submitLabel: string;
 }
 
@@ -31,7 +41,7 @@ export default function CustomerForm({
       className="flex w-full max-w-xl flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900"
     >
       {customer ? (
-        <input type="hidden" name="customerId" value={customer.id.toString()} />
+        <input type="hidden" name="customerId" value={customer.id} />
       ) : null}
 
       {state?.error ? (

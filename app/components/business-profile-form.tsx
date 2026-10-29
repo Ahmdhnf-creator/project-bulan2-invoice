@@ -2,10 +2,19 @@
 
 import { useActionState } from "react";
 import { saveBusinessProfile } from "@/app/actions/business-profile";
-import type { BusinessProfile } from "@/app/generated/prisma/client";
+
+// DTO serializable yang dikirim dari Server Component ke Client Component.
+// Hanya field string yang dibutuhkan formulir, tanpa BigInt dari model Prisma.
+export interface BusinessProfileFormValues {
+  businessName: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  taxId: string | null;
+}
 
 interface BusinessProfileFormProps {
-  profile: BusinessProfile | null;
+  profile: BusinessProfileFormValues | null;
 }
 
 const inputClass =

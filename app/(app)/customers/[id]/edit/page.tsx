@@ -2,7 +2,9 @@ import { auth } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import CustomerForm from "@/app/components/customer-form";
+import CustomerForm, {
+  type CustomerFormValues,
+} from "@/app/components/customer-form";
 import { updateCustomer } from "@/app/actions/customer";
 
 interface CustomerEditPageProps {
@@ -35,6 +37,16 @@ export default async function CustomerEditPage({
     notFound();
   }
 
+  // Konversi model Prisma ke DTO serializable sebelum dikirim ke Client
+  // Component. BigInt dikonversi ke string agar aman diserialisasi RSC.
+  const values: CustomerFormValues = {
+    id: customer.id.toString(),
+    name: customer.name,
+    phone: customer.phone,
+    email: customer.email,
+    address: customer.address,
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
@@ -57,7 +69,7 @@ export default async function CustomerEditPage({
 
         <CustomerForm
           action={updateCustomer}
-          customer={customer}
+          customer={values}
           submitLabel="Simpan Perubahan"
         />
       </div>

@@ -2,7 +2,9 @@ import { auth } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import ProjectForm from "@/app/components/project-form";
+import ProjectForm, {
+  type ProjectFormValues,
+} from "@/app/components/project-form";
 import { updateProject } from "@/app/actions/project";
 
 interface ProjectEditPageProps {
@@ -40,6 +42,20 @@ export default async function ProjectEditPage({
     notFound();
   }
 
+  // Konversi model Prisma ke DTO serializable sebelum dikirim ke Client
+  // Component. Decimal dan BigInt dikonversi ke string untuk menjaga
+  // presisi dan menghindari error serialisasi RSC.
+  const values: ProjectFormValues = {
+    id: project.id.toString(),
+    name: project.name,
+    customerId: project.customerId.toString(),
+    projectValue: project.projectValue.toString(),
+    startDate: project.startDate.toISOString().slice(0, 10),
+    endDate: project.endDate ? project.endDate.toISOString().slice(0, 10) : null,
+    status: project.status,
+    notes: project.notes,
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
@@ -62,7 +78,7 @@ export default async function ProjectEditPage({
 
         <ProjectForm
           action={updateProject}
-          project={project}
+          project={values}
           customers={customers}
           submitLabel="Simpan Perubahan"
         />

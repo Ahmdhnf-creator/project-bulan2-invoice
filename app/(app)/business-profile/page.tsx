@@ -2,7 +2,9 @@ import { auth } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import BusinessProfileForm from "@/app/components/business-profile-form";
+import BusinessProfileForm, {
+  type BusinessProfileFormValues,
+} from "@/app/components/business-profile-form";
 
 export default async function BusinessProfilePage() {
   const session = await auth();
@@ -13,6 +15,18 @@ export default async function BusinessProfilePage() {
   // Read is scoped to the logged-in user only.
   const userId = BigInt(session.user.id);
   const profile = await prisma.businessProfile.findUnique({ where: { userId } });
+
+  // Konversi model Prisma ke DTO serializable sebelum dikirim ke Client
+  // Component. Hanya field string yang dibutuhkan formulir, tanpa BigInt.
+  const values: BusinessProfileFormValues | null = profile
+    ? {
+        businessName: profile.businessName,
+        address: profile.address,
+        phone: profile.phone,
+        email: profile.email,
+        taxId: profile.taxId,
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,7 +48,7 @@ export default async function BusinessProfilePage() {
           </div>
         </header>
 
-        <BusinessProfileForm profile={profile} />
+        <BusinessProfileForm profile={values} />
       </div>
     </div>
   );
