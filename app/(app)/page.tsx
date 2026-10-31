@@ -66,6 +66,15 @@ function greetingWord(hour: number): string {
   return "selamat malam";
 }
 
+function jakartaHour(): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  return Number(parts.find((part) => part.type === "hour")?.value ?? 0);
+}
+
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -81,7 +90,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const chartStart = new Date(Date.UTC(activeYear, activeMonth - 6, 1));
 
   const [
-    businessProfile,
     projectStats,
     invoicePeriod,
     invoicePrev,
@@ -94,7 +102,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     allInvoices,
     recentProjects,
   ] = await Promise.all([
-    prisma.businessProfile.findUnique({ where: { userId } }),
     prisma.project.aggregate({ where: { userId }, _sum: { projectValue: true }, _count: true }),
     prisma.invoice.aggregate({
       where: { userId, issueDate: { gte: rangeStart, lt: rangeEnd } },
@@ -140,7 +147,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     }),
   ]);
 
-  const businessName = businessProfile?.businessName ?? session.user.name ?? "BillMate";
   const userName = session.user.name ?? "Pengguna";
 
   // ---- 6-month cash-flow series (ends at selected month) ----
@@ -226,7 +232,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4 pl-12 md:pl-0">
+        <div className="flex flex-wrap items-center gap-4">
           <h1 className="text-2xl font-semibold tracking-tight">Ringkasan</h1>
           <MonthPicker
             options={periodOptions}
@@ -264,8 +270,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <section className="mb-8">
         <h2 className="text-2xl font-semibold tracking-tight">Halo, {userName}</h2>
         <p className="mt-1 text-muted">
-          {greetingWord(new Date().getHours())} — pantau kesehatan keuangan dan
-          progres proyek Anda di {businessName}.
+          {greetingWord(jakartaHour())} — pantau kesehatan keuangan dan progres
+          proyek Anda.
         </p>
       </section>
 
@@ -351,11 +357,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <thead className="border-b border-line text-muted">
               <tr>
                 <th scope="col" className="px-4 py-3 font-medium">Proyek</th>
-                <th scope="col" className="px-4 py-3 font-medium">Pelanggan</th>
+                <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">Pelanggan</th>
                 <th scope="col" className="px-4 py-3 font-medium">Nilai</th>
                 <th scope="col" className="px-4 py-3 font-medium">Status</th>
-                <th scope="col" className="px-4 py-3 font-medium">Mulai</th>
-                <th scope="col" className="px-4 py-3 font-medium">Tenggat</th>
+                <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">Mulai</th>
+                <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">Tenggat</th>
                 <th scope="col" className="px-4 py-3 font-medium">
                   <span className="sr-only">Buka</span>
                 </th>
@@ -382,7 +388,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                         {project.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{project.customer.name}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{project.customer.name}</td>
                     <td className="px-4 py-3">{formatIdr(project.projectValue)}</td>
                     <td className="px-4 py-3">
                       <span
@@ -391,8 +397,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                         {PROJECT_STATUS_LABEL[project.status]}
                       </span>
                     </td>
-                    <td className="px-4 py-3">{formatDate(project.startDate)}</td>
-                    <td className="px-4 py-3">{formatDate(project.endDate)}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{formatDate(project.startDate)}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{formatDate(project.endDate)}</td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/projects/${project.id.toString()}`}

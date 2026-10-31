@@ -31,15 +31,14 @@ export async function login(
   }
 
   try {
-    await signIn("credentials", { email, password, redirect: false });
+    await signIn("credentials", { email, password, redirectTo: "/" });
   } catch (error) {
     if (error instanceof CredentialsSignin) {
       return { error: "Email atau password salah." };
     }
-    throw error;
+    return { error: "Login gagal. Silakan coba lagi." };
   }
-
-  redirect("/");
+  return null;
 }
 
 export interface RegisterState {
@@ -79,11 +78,14 @@ export async function register(
   }
 
   try {
-    await signIn("credentials", { email, password, redirect: false });
-  } catch {
-    return { success: "Akun berhasil dibuat. Silakan login." };
+    await signIn("credentials", { email, password, redirectTo: "/" });
+  } catch (error) {
+    if (error instanceof CredentialsSignin) {
+      return { success: "Akun berhasil dibuat. Silakan login." };
+    }
+    return { error: "Akun berhasil dibuat, tetapi login otomatis gagal. Silakan login manual." };
   }
-  redirect("/");
+  return null;
 }
 
 export async function logout() {

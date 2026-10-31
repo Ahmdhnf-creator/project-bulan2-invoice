@@ -159,7 +159,7 @@ export default async function ProjectDetailPage({
                     <th scope="col" className="px-4 py-3 font-medium">
                       Nomor
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Terbit
                     </th>
                     <th scope="col" className="px-4 py-3 font-medium">
@@ -187,7 +187,7 @@ export default async function ProjectDetailPage({
                           {invoice.invoiceNumber}
                         </Link>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         {formatDate(invoice.issueDate)}
                       </td>
                       <td className="px-4 py-3">{formatDate(invoice.dueDate)}</td>
@@ -229,10 +229,10 @@ export default async function ProjectDetailPage({
                     <th scope="col" className="px-4 py-3 font-medium">
                       Deskripsi
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Tanggal
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Kategori
                     </th>
                     <th scope="col" className="px-4 py-3 font-medium">
@@ -252,8 +252,8 @@ export default async function ProjectDetailPage({
                       <td className="px-4 py-3 font-medium">
                         {expense.description}
                       </td>
-                      <td className="px-4 py-3">{formatDate(expense.date)}</td>
-                      <td className="px-4 py-3">{expense.category}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{formatDate(expense.date)}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{expense.category}</td>
                       <td className="px-4 py-3">
                         {formatIdr(expense.amount)}
                       </td>

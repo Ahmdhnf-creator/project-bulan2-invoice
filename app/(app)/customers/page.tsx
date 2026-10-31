@@ -68,10 +68,10 @@ export default async function CustomersPage() {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Nama
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Telepon
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Email
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -89,8 +89,8 @@ export default async function CustomersPage() {
                     className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
                   >
                     <td className="px-4 py-3 font-medium">{customer.name}</td>
-                    <td className="px-4 py-3">{customer.phone || "—"}</td>
-                    <td className="px-4 py-3">{customer.email || "—"}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{customer.phone || "—"}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{customer.email || "—"}</td>
                     <td className="px-4 py-3">{customer._count.projects}</td>
                     <td className="px-4 py-3">
                       <Link

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "BillMate",
-    template: "%s · BillMate",
+    default: "artha",
+    template: "%s · artha",
   },
   description:
     "Kelola proyek, invoice, pembayaran, dan pengeluaran bisnis Anda.",

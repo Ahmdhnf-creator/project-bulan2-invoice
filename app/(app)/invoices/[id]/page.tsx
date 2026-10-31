@@ -62,7 +62,7 @@ export default async function InvoiceDetailPage({
     new Prisma.Decimal(0),
   );
   const remaining = invoice.total.sub(paidTotal);
-  const businessName = businessProfile?.businessName ?? session.user.name ?? "BillMate";
+  const businessName = businessProfile?.businessName ?? session.user.name ?? "artha";
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,12 +187,12 @@ export default async function InvoiceDetailPage({
                   <th scope="col" className="px-4 py-3 font-medium">
                     Deskripsi
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Kuantitas
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Harga Satuan
-                  </th>
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
+                      Kuantitas
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
+                      Harga Satuan
+                    </th>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Jumlah
                   </th>
@@ -207,12 +207,12 @@ export default async function InvoiceDetailPage({
                     <td className="px-4 py-3 font-medium">
                       {item.description}
                     </td>
-                    <td className="px-4 py-3">
-                      {item.quantity.toString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      {formatIdr(item.unitPrice)}
-                    </td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        {item.quantity.toString()}
+                      </td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        {formatIdr(item.unitPrice)}
+                      </td>
                     <td className="px-4 py-3">{formatIdr(item.amount)}</td>
                   </tr>
                 ))}
@@ -246,10 +246,10 @@ export default async function InvoiceDetailPage({
                     <th scope="col" className="px-4 py-3 font-medium">
                       Jumlah
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Metode
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Catatan
                     </th>
                     <th scope="col" className="px-4 py-3 font-medium">
@@ -269,8 +269,8 @@ export default async function InvoiceDetailPage({
                       <td className="px-4 py-3">
                         {formatIdr(payment.amount)}
                       </td>
-                      <td className="px-4 py-3">{payment.method || "—"}</td>
-                      <td className="px-4 py-3">{payment.notes || "—"}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{payment.method || "—"}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{payment.notes || "—"}</td>
                       <td className="px-4 py-3">
                         <Link
                           href={`/payments/${payment.id.toString()}`}

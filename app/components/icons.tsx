@@ -172,3 +172,51 @@ export function IconMoon({ className, size }: { className?: string; size?: numbe
     </svg>
   );
 }
+
+export function IconMail({ className, size }: { className?: string; size?: number }) {
+  return (
+    <svg {...svgProps(className, size)}>
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m4 7.5 8 5.5 8-5.5" />
+    </svg>
+  );
+}
+
+export function IconKey({ className, size }: { className?: string; size?: number }) {
+  return (
+    <svg {...svgProps(className, size)}>
+      <circle cx="8" cy="15.5" r="3.5" />
+      <path d="M10.8 12.7 19.5 4" />
+      <path d="M16 7.5 18.5 10M14 9.5 16.5 12" />
+    </svg>
+  );
+}
+
+export function IconEye({ className, size }: { className?: string; size?: number }) {
+  return (
+    <svg {...svgProps(className, size)}>
+      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function IconEyeOff({ className, size }: { className?: string; size?: number }) {
+  return (
+    <svg {...svgProps(className, size)}>
+      <path d="M3 3l18 18" />
+      <path d="M10.6 6.1A10.4 10.4 0 0 1 12 6c6 0 9.5 6 9.5 6a17.3 17.3 0 0 1-3.3 4" />
+      <path d="M6.4 6.5A16.7 16.7 0 0 0 2.5 12S6 18 12 18a9.8 9.8 0 0 0 3.5-.6" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
+  );
+}
+
+export function IconUser({ className, size }: { className?: string; size?: number }) {
+  return (
+    <svg {...svgProps(className, size)}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c.7-3.4 3.3-5.2 7-5.2s6.3 1.8 7 5.2" />
+    </svg>
+  );
+}

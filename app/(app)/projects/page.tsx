@@ -72,7 +72,7 @@ export default async function ProjectsPage() {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Proyek
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Pelanggan
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -81,10 +81,10 @@ export default async function ProjectsPage() {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Nilai
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Mulai
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Selesai
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -99,7 +99,7 @@ export default async function ProjectsPage() {
                     className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
                   >
                     <td className="px-4 py-3 font-medium">{project.name}</td>
-                    <td className="px-4 py-3">{project.customer.name}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{project.customer.name}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${PROJECT_STATUS_STYLES[project.status]}`}
@@ -110,10 +110,10 @@ export default async function ProjectsPage() {
                     <td className="px-4 py-3">
                       {formatIdr(project.projectValue)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       {formatDate(project.startDate)}
                     </td>
-                    <td className="px-4 py-3">{formatDate(project.endDate)}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{formatDate(project.endDate)}</td>
                     <td className="px-4 py-3">
                       <Link
                         href={`/projects/${project.id.toString()}`}

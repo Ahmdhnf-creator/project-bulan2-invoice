@@ -230,7 +230,7 @@ try {
   const lang = await page.locator("html").getAttribute("lang");
   record("SH5 html lang='id'", lang === "id", `lang=${lang}`);
   const title = await page.title();
-  record("SH5b title contains 'BillMate'", title.includes("BillMate"), `title=${title}`);
+  record("SH5b title contains 'artha'", title.includes("artha"), `title=${title}`);
 
   // ---------- SH6: month picker (?period=2026-10) ----------
   await page.goto(`${BASE}/?period=${OCT.year}-${OCT.month}`, { waitUntil: "domcontentloaded" });

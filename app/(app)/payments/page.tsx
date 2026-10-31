@@ -82,16 +82,16 @@ export default async function PaymentsPage() {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Invoice
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Pelanggan
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Jumlah
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Metode
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Catatan
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -114,12 +114,12 @@ export default async function PaymentsPage() {
                         {payment.invoice.invoiceNumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       {payment.invoice.project.customer.name}
                     </td>
                     <td className="px-4 py-3">{formatIdr(payment.amount)}</td>
-                    <td className="px-4 py-3">{payment.method || "—"}</td>
-                    <td className="px-4 py-3">{payment.notes || "—"}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{payment.method || "—"}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{payment.notes || "—"}</td>
                     <td className="px-4 py-3">
                       <Link
                         href={`/payments/${payment.id.toString()}`}

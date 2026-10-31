@@ -74,10 +74,10 @@ export default async function InvoicesPage() {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Nomor
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Proyek
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Terbit
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -103,8 +103,8 @@ export default async function InvoicesPage() {
                     <td className="px-4 py-3 font-medium">
                       {invoice.invoiceNumber}
                     </td>
-                    <td className="px-4 py-3">{invoice.project.name}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">{invoice.project.name}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       {formatDate(invoice.issueDate)}
                     </td>
                     <td className="px-4 py-3">{formatDate(invoice.dueDate)}</td>

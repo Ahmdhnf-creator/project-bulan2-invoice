@@ -67,7 +67,7 @@ export default function ProjectForm({
     <form
       action={formAction}
       noValidate
-      className="flex w-full max-w-xl flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900"
+      className="flex w-full max-w-xl flex-col gap-5 rounded-xl border border-zinc-200 bg-white p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900"
     >
       {project ? (
         <input type="hidden" name="projectId" value={project.id} />
@@ -213,7 +213,7 @@ export default function ProjectForm({
       <button
         type="submit"
         disabled={isPending}
-        className="h-11 rounded-full bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
+        className="w-full sm:w-auto h-11 rounded-full bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
       >
         {isPending ? "Menyimpan…" : submitLabel}
       </button>

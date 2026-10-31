@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import LogoutButton from "@/app/components/logout-button";
@@ -11,7 +12,6 @@ import {
   IconDoc,
   IconFolder,
   IconHome,
-  IconLeaf,
   IconMenu,
   IconSettings,
   IconUsers,
@@ -55,9 +55,9 @@ export default function Sidebar({ userName }: { userName: string }) {
         className="flex items-center gap-2.5 px-5 py-5"
         onClick={() => setOpen(false)}
       >
-        <IconLeaf className="h-6 w-6 text-emerald-400" size={24} />
+        <Image src="/artha-logo-13836d.png" alt="" width={84} height={72} className="h-5 w-auto" />
         <span className="text-lg font-semibold tracking-tight text-white">
-          BillMate
+          Artha
         </span>
       </Link>
 

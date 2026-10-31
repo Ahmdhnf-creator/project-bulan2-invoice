@@ -256,13 +256,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Proyek
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Nilai Proyek
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Terbayar
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Pengeluaran
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -294,9 +294,9 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                           {project.name}
                         </Link>
                       </td>
-                      <td className="px-4 py-3">{formatIdr(project.projectValue)}</td>
-                      <td className="px-4 py-3">{formatIdr(paid)}</td>
-                      <td className="px-4 py-3">{formatIdr(spent)}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{formatIdr(project.projectValue)}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{formatIdr(paid)}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">{formatIdr(spent)}</td>
                       <td className="px-4 py-3">{formatIdr(net)}</td>
                     </tr>
                   ))

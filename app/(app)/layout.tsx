@@ -15,7 +15,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Sidebar userName={session.user.name ?? "Pengguna"} />
-      <div className="md:pl-64">
+      <div className="pt-14 md:pl-64 md:pt-0">
         <main>{children}</main>
       </div>
     </div>

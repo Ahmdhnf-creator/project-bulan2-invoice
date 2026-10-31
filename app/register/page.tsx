@@ -1,11 +1,21 @@
 "use client";
 
 import { useActionState, useState, type ChangeEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { register } from "@/app/actions/auth";
+import {
+  IconEye,
+  IconEyeOff,
+  IconKey,
+  IconMail,
+  IconUser,
+} from "@/app/components/icons";
 
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(register, null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [values, setValues] = useState({
     fullName: "",
     email: "",
@@ -18,116 +28,185 @@ export default function RegisterPage() {
     setValues((previous) => ({ ...previous, [name]: value }));
   }
 
+  const fieldClass =
+    "h-14 w-full rounded-full border border-transparent bg-[#e6e6e6] pl-14 text-[#103a35] placeholder:text-[#8a938d] focus:border-[#13836d] focus:outline-none focus:ring-2 focus:ring-[#13836d]/30";
+
   return (
-    <div className="flex flex-1 items-center justify-center bg-background">
-      <form
-        action={formAction}
-        className="flex w-full max-w-sm flex-col gap-5 rounded-xl border border-black/[.08] bg-white p-8 dark:border-white/[.145] dark:bg-black"
-      >
-        <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Buat akun BillMate
-        </h1>
+    <div className="flex min-h-dvh items-center justify-center bg-white p-4 sm:p-8">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_80px_-40px_rgba(16,58,53,0.45)] ring-1 ring-black/[.06] lg:min-h-[560px] lg:grid-cols-2">
+        <div className="flex flex-col p-8 sm:p-12">
+          <Link href="/" className="flex items-center gap-2.5 self-start">
+            <Image
+              src="/artha-logo-13836d.png"
+              alt=""
+              width={84}
+              height={72}
+              className="h-7 w-auto"
+              priority
+            />
+            <span className="text-2xl font-bold tracking-tight text-[#103a35]">
+              Artha
+            </span>
+          </Link>
 
-        {state?.error ? (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-            {state.error}
-          </p>
-        ) : null}
+          <div className="flex flex-1 flex-col justify-center py-10">
+            <div className="w-full max-w-[24rem]">
+              <h1 className="text-3xl font-semibold tracking-tight text-[#103a35]">
+                Buat akun Artha
+              </h1>
+              <p className="mt-2 text-sm italic text-[#6b7a70]">
+                Lengkapi informasi di bawah ini untuk mendaftar
+              </p>
 
-        {state?.success ? (
-          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
-            {state.success}
-          </p>
-        ) : null}
+              <form action={formAction} className="mt-8 flex flex-col gap-4">
+                {state?.error ? (
+                  <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+                    {state.error}
+                  </p>
+                ) : null}
 
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="fullName"
-            className="text-sm font-medium text-black dark:text-zinc-50"
-          >
-            Nama lengkap
-          </label>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            required
-            autoComplete="name"
-            value={values.fullName}
-            onChange={handleChange}
-            className="h-11 rounded-md border border-black/[.08] bg-white px-3 text-black dark:border-white/[.145] dark:bg-black dark:text-zinc-50"
-          />
+                {state?.success ? (
+                  <p className="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+                    {state.success}
+                  </p>
+                ) : null}
+
+                <div className="relative">
+                  <IconUser className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7a70]" />
+                  <label htmlFor="fullName" className="sr-only">
+                    Nama lengkap
+                  </label>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    required
+                    autoComplete="name"
+                    placeholder="Nama lengkap"
+                    value={values.fullName}
+                    onChange={handleChange}
+                    className={`${fieldClass} pr-5`}
+                  />
+                </div>
+
+                <div className="relative">
+                  <IconMail className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7a70]" />
+                  <label htmlFor="email" className="sr-only">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    placeholder="Email"
+                    value={values.email}
+                    onChange={handleChange}
+                    className={`${fieldClass} pr-5`}
+                  />
+                </div>
+
+                <div className="relative">
+                  <IconKey className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7a70]" />
+                  <label htmlFor="password" className="sr-only">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    placeholder="Password"
+                    value={values.password}
+                    onChange={handleChange}
+                    className={`${fieldClass} pr-14`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={
+                      showPassword
+                        ? "Sembunyikan password"
+                        : "Tampilkan password"
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[#6b7a70] transition-colors hover:text-[#103a35]"
+                  >
+                    {showPassword ? (
+                      <IconEyeOff className="h-5 w-5" />
+                    ) : (
+                      <IconEye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <IconKey className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7a70]" />
+                  <label htmlFor="confirmPassword" className="sr-only">
+                    Konfirmasi password
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    required
+                    autoComplete="new-password"
+                    placeholder="Konfirmasi password"
+                    value={values.confirmPassword}
+                    onChange={handleChange}
+                    className={`${fieldClass} pr-14`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((value) => !value)}
+                    aria-label={
+                      showConfirm
+                        ? "Sembunyikan konfirmasi password"
+                        : "Tampilkan konfirmasi password"
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[#6b7a70] transition-colors hover:text-[#103a35]"
+                  >
+                    {showConfirm ? (
+                      <IconEyeOff className="h-5 w-5" />
+                    ) : (
+                      <IconEye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="mt-2 flex items-center gap-5">
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="inline-flex h-14 min-w-[9rem] items-center justify-center rounded-full bg-[#103a35] px-10 text-sm font-semibold text-white transition-colors hover:bg-[#0c2e29] disabled:opacity-60"
+                  >
+                    {isPending ? "Memproses…" : "Daftar"}
+                  </button>
+                  <Link
+                    href="/login"
+                    className="text-sm font-semibold text-[#103a35] hover:underline"
+                  >
+                    Masuk
+                  </Link>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium text-black dark:text-zinc-50"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            value={values.email}
-            onChange={handleChange}
-            className="h-11 rounded-md border border-black/[.08] bg-white px-3 text-black dark:border-white/[.145] dark:bg-black dark:text-zinc-50"
+        <div className="relative hidden overflow-hidden bg-[#103a35] lg:block">
+          <Image
+            src="/login-illustration.png"
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="object-contain p-6"
+            priority
           />
         </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium text-black dark:text-zinc-50"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            value={values.password}
-            onChange={handleChange}
-            className="h-11 rounded-md border border-black/[.08] bg-white px-3 text-black dark:border-white/[.145] dark:bg-black dark:text-zinc-50"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="confirmPassword"
-            className="text-sm font-medium text-black dark:text-zinc-50"
-          >
-            Konfirmasi password
-          </label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            required
-            autoComplete="new-password"
-            value={values.confirmPassword}
-            onChange={handleChange}
-            className="h-11 rounded-md border border-black/[.08] bg-white px-3 text-black dark:border-white/[.145] dark:bg-black dark:text-zinc-50"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={isPending}
-          className="h-11 rounded-full bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-        >
-          {isPending ? "Mendaftar…" : "Daftar"}
-        </button>
-        <Link href="/login" className="text-center text-sm text-black hover:underline dark:text-zinc-50">
-          Sudah punya akun? Masuk
-        </Link>
-      </form>
+      </div>
     </div>
   );
 }

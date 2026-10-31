@@ -105,7 +105,7 @@ try {
   await page.goBack({ waitUntil: "domcontentloaded" }).catch(() => {});
   const backUrl = page.url();
   const backText = await page.textContent("body").catch(() => "");
-  const backAtLogin = backUrl.endsWith("/login") || /Sign in to BillMate/.test(backText ?? "");
+  const backAtLogin = backUrl.endsWith("/login") || /Selamat datang di sistem login/.test(backText ?? "");
   const backHasPrivateData = /Demo Office Garden/.test(backText ?? "");
   record(
     "B8 back navigation does not grant live private access",

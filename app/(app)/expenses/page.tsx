@@ -83,10 +83,10 @@ export default async function ExpensesPage() {
                   <th scope="col" className="px-4 py-3 font-medium">
                     Deskripsi
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Proyek
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                     Kategori
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
@@ -107,7 +107,7 @@ export default async function ExpensesPage() {
                     <td className="px-4 py-3 font-medium">
                       {expense.description}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       <Link
                         href={`/projects/${expense.project.id.toString()}`}
                         className="text-blue-600 hover:underline dark:text-blue-400"
@@ -118,7 +118,7 @@ export default async function ExpensesPage() {
                         {expense.project.customer.name}
                       </span>
                     </td>
-                    <td className="px-4 py-3">{expense.category}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell">{expense.category}</td>
                     <td className="px-4 py-3">{formatIdr(expense.amount)}</td>
                     <td className="px-4 py-3">
                       <Link

@@ -136,10 +136,10 @@ export default async function CustomerDetailPage({
                     <th scope="col" className="px-4 py-3 font-medium">
                       Nilai
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Mulai
                     </th>
-                    <th scope="col" className="px-4 py-3 font-medium">
+                    <th scope="col" className="px-4 py-3 font-medium hidden sm:table-cell">
                       Selesai
                     </th>
                   </tr>
@@ -168,10 +168,10 @@ export default async function CustomerDetailPage({
                       <td className="px-4 py-3">
                         {formatIdr(project.projectValue)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         {formatDate(project.startDate)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         {formatDate(project.endDate)}
                       </td>
                     </tr>
