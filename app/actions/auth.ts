@@ -5,7 +5,7 @@ import { prisma } from "@/app/lib/prisma";
 import { Prisma } from "@/app/generated/prisma/client";
 import { hash as argon2Hash } from "@node-rs/argon2";
 import { CredentialsSignin } from "next-auth";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { cookies } from "next/headers";
 
 export interface LoginState {
@@ -33,6 +33,7 @@ export async function login(
   try {
     await signIn("credentials", { email, password, redirectTo: "/" });
   } catch (error) {
+    unstable_rethrow(error);
     if (error instanceof CredentialsSignin) {
       return { error: "Email atau password salah." };
     }
@@ -80,6 +81,7 @@ export async function register(
   try {
     await signIn("credentials", { email, password, redirectTo: "/" });
   } catch (error) {
+    unstable_rethrow(error);
     if (error instanceof CredentialsSignin) {
       return { success: "Akun berhasil dibuat. Silakan login." };
     }
